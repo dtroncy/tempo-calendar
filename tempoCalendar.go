@@ -3,20 +3,20 @@ package tempocalendar
 import (
 	"context"
 	"fmt"
-	"io"
+	"net/http"
 
 	"golang.org/x/oauth2/clientcredentials"
 )
 
-func GetTempoCalendar(startDate string, endDate string) ([]byte, error) {
+func GetTempoCalendar(startDate string, endDate string) (*http.Response, error) {
 
-	var body []byte
+	var response *http.Response
 
 	conf, err := loadConf()
 
 	if err != nil {
 		fmt.Println("Erreur lors du chargement du fichier de configuration : ", err)
-		return body, err
+		return response, err
 	}
 
 	config := &clientcredentials.Config{
@@ -29,19 +29,12 @@ func GetTempoCalendar(startDate string, endDate string) ([]byte, error) {
 
 	apiURL := "https://digital.iservices.rte-france.com/open_api/tempo_like_supply_contract/v1/tempo_like_calendars?start_date=" + startDate + "&end_date=" + endDate
 
-	response, err := client.Get(apiURL)
+	response, err = client.Get(apiURL)
 	if err != nil {
 		fmt.Printf("Erreur lors de la requête GET: %v\n", err)
-		return body, err
+		return response, err
 	}
 	defer response.Body.Close()
 
-	// Lecture du corps de la réponse
-	body, err = io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Printf("Erreur lors de la lecture du corps de la réponse: %v\n", err)
-		return body, err
-	}
-
-	return body, err
+	return response, err
 }
